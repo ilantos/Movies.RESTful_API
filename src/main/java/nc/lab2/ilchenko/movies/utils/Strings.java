@@ -2,7 +2,7 @@ package nc.lab2.ilchenko.movies.utils;
 
 public class Strings {
     public static class Controller {
-        public static final String MOVIE_NOT_FOUND = "Not found the movie";
+        public static final String MOVIE_NOT_FOUND = "Movie not found";
     }
 
     public static class Service {

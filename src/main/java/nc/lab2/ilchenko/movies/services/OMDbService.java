@@ -18,36 +18,46 @@ public class OMDbService implements MovieService {
     private static final String URL = "http://www.omdbapi.com/";
     private static final String API = "?apikey=";
     private static final String GET_BY_ID = "&i=";
+    private static final String GET_BY_TITLE = "&t=";
 
     @Override
     public Movie getById(String id) throws ServiceException {
-        String url = URL + API + apiKey + GET_BY_ID + id;
+        return getMovie(GET_BY_ID + id);
+    }
+
+    @Override
+    public Movie getByTitle(String title) throws ServiceException {
+        return getMovie(GET_BY_TITLE + title);
+    }
+
+    private Movie getMovie(String params) throws ServiceException {
+        String url = URL + API + apiKey + params;
         logger.info("Request to OMDb api:" + url);
 
         RestTemplate template = new RestTemplate();
         String responseText = template.getForObject(url, String.class);
         logger.debug("Response from OMDb:" + responseText);
 
-        JSONObject json = null;
+        JSONObject responseJson = null;
         try {
-            json = new JSONObject(responseText);
+            responseJson = new JSONObject(responseText);
         } catch (JSONException e) {
             logger.error(Strings.Service.INVALID_FORMAT_SERVICE, e);
             throw new ServiceException(
                     Strings.Service.INVALID_FORMAT_SERVICE,
                     e);
         }
-        if (json.getString("Response").equals("False")) {
+        if (responseJson.getString("Response").equals("False")) {
             logger.warn(Strings.Service.CANNOT_GET_MOVIE
                     + Strings.Service.MESSAGE_SERVICE
-                    + json.getString("Error"));
-            throw new ServiceException(json.getString("Error"));
+                    + responseJson.getString("Error"));
+            throw new ServiceException(responseJson.getString("Error"));
         }
         return new Movie(
-                json.getString("imdbID"),
-                json.getString("Title"),
-                json.getString("Director"),
-                json.getString("Year")
+                responseJson.getString("imdbID"),
+                responseJson.getString("Title"),
+                responseJson.getString("Director"),
+                responseJson.getString("Year")
         );
     }
 }

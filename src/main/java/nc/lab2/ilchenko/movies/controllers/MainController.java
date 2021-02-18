@@ -23,16 +23,29 @@ public class MainController {
     @GetMapping("/id/{id}")
     public ResponseEntity<?> movieById(@PathVariable(value = "id") String id,
                                        @RequestParam(value = "response",
-                                               defaultValue = RESPONSE_TYPE_DEF)
-                                               String responseType) {
+                                                     defaultValue = RESPONSE_TYPE_DEF) String responseType) {
         logger.info("User get movie by id:" + id);
         try {
             Movie movie = service.getById(id);
             return CustomResponse.getResponse(movie, responseType);
         } catch (ServiceException e) {
             return CustomResponse.getBadRequest(
-                    Strings.Controller
-                    .MOVIE_NOT_FOUND);
+                    Strings.Controller.MOVIE_NOT_FOUND);
+        }
+    }
+
+    @GetMapping("title/{title}")
+    public ResponseEntity<?> movieByTitle(@PathVariable(value = "title") String title,
+                                          @RequestParam(
+                                                  value = "response",
+                                                  defaultValue = RESPONSE_TYPE_DEF) String responseType) {
+        logger.info("User get movie by title:" + title);
+        try {
+            Movie movie = service.getByTitle(title);
+            return CustomResponse.getResponse(movie, responseType);
+        } catch (ServiceException e) {
+            return CustomResponse.getBadRequest(
+                    Strings.Controller.MOVIE_NOT_FOUND);
         }
     }
 }
