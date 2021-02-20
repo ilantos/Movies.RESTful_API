@@ -2,6 +2,7 @@ package nc.lab2.ilchenko.movies.controllers;
 
 import nc.lab2.ilchenko.movies.controllers.utils.CustomResponse;
 import nc.lab2.ilchenko.movies.model.Movie;
+import nc.lab2.ilchenko.movies.save.system.SaveMovies;
 import nc.lab2.ilchenko.movies.services.MovieService;
 import nc.lab2.ilchenko.movies.services.ServiceException;
 import nc.lab2.ilchenko.movies.utils.Strings;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -22,9 +24,16 @@ public class MainController {
     private MovieService service;
     @Autowired
     private CustomResponse response;
+    @Autowired
+    private SaveMovies saveSystem;
 
-    public MainController(MovieService service) {
+    public MainController() {
+    }
+
+    public MainController(MovieService service, CustomResponse response, SaveMovies saveSystem) {
         this.service = service;
+        this.response = response;
+        this.saveSystem = saveSystem;
     }
 
     @GetMapping("/id/{id}")
@@ -34,6 +43,7 @@ public class MainController {
         logger.info("User get movie by id:" + id);
         try {
             Movie movie = service.getById(id);
+            saveSystem.save(Collections.singletonList(movie));
             return response.buildResponse(movie, responseType);
         } catch (ServiceException e) {
             return response.getBadRequest(
@@ -49,6 +59,7 @@ public class MainController {
         logger.info("User get movie by title:" + title);
         try {
             Movie movie = service.getByTitle(title);
+            saveSystem.save(Collections.singletonList(movie));
             return response.buildResponse(movie, responseType);
         } catch (ServiceException e) {
             return response.getBadRequest(
@@ -64,6 +75,7 @@ public class MainController {
         logger.info("User search movies by title:" + title);
         try {
             List<Movie> movies = service.searchByTitle(title);
+            saveSystem.save(movies);
             return response.buildResponse(movies, responseType);
         } catch (ServiceException e) {
             return response.getBadRequest(

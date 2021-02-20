@@ -28,4 +28,14 @@ public class Movie {
     public String getYear() {
         return year;
     }
+
+    @Override
+    public String toString() {
+        return "Movie{" +
+                "id='" + id + '\'' +
+                ", title='" + title + '\'' +
+                ", director='" + director + '\'' +
+                ", year='" + year + '\'' +
+                '}';
+    }
 }

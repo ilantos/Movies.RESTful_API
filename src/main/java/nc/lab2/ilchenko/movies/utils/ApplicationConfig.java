@@ -1,5 +1,7 @@
 package nc.lab2.ilchenko.movies.utils;
 
+import nc.lab2.ilchenko.movies.save.system.MSWordSave;
+import nc.lab2.ilchenko.movies.save.system.SaveMovies;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,7 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Configuration
-public class ExecutorServiceConfig {
+public class ApplicationConfig {
     @Value("${services.threads.async.max}")
     private int maxThreads;
 
@@ -21,4 +23,6 @@ public class ExecutorServiceConfig {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
+    @Bean
+    public SaveMovies saveSystem() { return new MSWordSave(); }
 }
