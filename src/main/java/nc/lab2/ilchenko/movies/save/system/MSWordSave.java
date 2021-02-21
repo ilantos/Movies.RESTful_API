@@ -26,24 +26,24 @@ public class MSWordSave implements SaveMovies {
 
     @Override
     public synchronized void save(List<Movie> movies) {
+        logger.info("Saving movies into MSWord document...");
         XWPFDocument doc = null;
         try {
-            logger.debug("Getting document xml");
+            logger.debug("Getting MSWord doc xml to append info ...");
             doc = getOutputDoc();
             Template.insert(doc, movies);
         } catch (IOException e) {
-            logger.error("Cannot read output document", e);
+            logger.error("Cannot read from MSWord document", e);
         }
 
-        try (FileOutputStream fos = new FileOutputStream("output.docx")) {
+        try (FileOutputStream fos = new FileOutputStream(path)) {
             if (doc != null) {
                 doc.write(fos);
-                logger.debug("Document isn't null");
             } else {
                 logger.error("XML MSWord document is null");
             }
         } catch (IOException e) {
-            logger.error("Cannot write to output MSWord document", e);
+            logger.error("Cannot write to MSWord document", e);
         }
     }
 

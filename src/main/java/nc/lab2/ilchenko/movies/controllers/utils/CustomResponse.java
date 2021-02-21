@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +19,16 @@ public class CustomResponse {
     private static final MediaType DEF_MEDIA_TYPE = MediaType.TEXT_PLAIN;
 
     private Map<String, MediaType> responseTypes = new HashMap<>();
-
-    @Autowired
     private MovieConverter converter;
 
-    public CustomResponse() {
+    @Autowired
+    public CustomResponse(MovieConverter converter) {
+        this.converter = converter;
+    }
+
+    @PostConstruct
+    public void initialize() {
+        logger.trace("initializing map...");
         responseTypes.put("json", MediaType.APPLICATION_JSON);
         responseTypes.put("xml", MediaType.APPLICATION_XML);
     }

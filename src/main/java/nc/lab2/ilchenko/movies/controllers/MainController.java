@@ -20,17 +20,14 @@ public class MainController {
     private static final Logger logger = Logger.getLogger(MainController.class);
     private static final String RESPONSE_TYPE_DEF = "json";
 
-    @Autowired
     private MovieService service;
-    @Autowired
     private CustomResponse response;
-    @Autowired
     private SaveMovies saveSystem;
 
-    public MainController() {
-    }
-
-    public MainController(MovieService service, CustomResponse response, SaveMovies saveSystem) {
+    @Autowired
+    public MainController(MovieService service,
+                          CustomResponse response,
+                          SaveMovies saveSystem) {
         this.service = service;
         this.response = response;
         this.saveSystem = saveSystem;

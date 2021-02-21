@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -25,28 +26,35 @@ public class OMDbService implements MovieService {
     @Value("${service.omdb.api.key}")
     private String apiKey;
     @Value("${service.omdb.url}")
-    private String URL;
+    private String url;
     private static final String API = "?apikey=";
     private static final String GET_BY_ID = "&i=";
     private static final String GET_BY_TITLE = "&t=";
     private static final String SEARCH_BY_TITLE = "&s=";
 
-    @Autowired
     private ExecutorService executorService;
-
-    @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    public OMDbService(ExecutorService executorService,
+                       RestTemplate restTemplate) {
+        this.executorService = executorService;
+        this.restTemplate = restTemplate;
+    }
+
+    @Cacheable("movie")
     @Override
     public Movie getById(String id) throws ServiceException {
         return getMovie(GET_BY_ID + id);
     }
 
+    @Cacheable("movie")
     @Override
     public Movie getByTitle(String title) throws ServiceException {
         return getMovie(GET_BY_TITLE + title);
     }
 
+    @Cacheable("movies")
     @Override
     public List<Movie> searchByTitle(String title) throws ServiceException {
         List<String> moviesId = searchByTitleGetId(title);
@@ -63,14 +71,15 @@ public class OMDbService implements MovieService {
                 movies.add(movie.get());
             }
         } catch (InterruptedException | ExecutionException e) {
-            throw new ServiceException("Cannot async get movies from service", e);
+            throw new ServiceException(Strings.Service.CANNOT_GET_MOVIE, e);
         }
         return movies;
     }
 
-    public List<String> searchByTitleGetId(String title) throws ServiceException {
+    private List<String> searchByTitleGetId(String title) throws ServiceException {
+        logger.info("Trying to get movies from service...");
         List<String> moviesId = new ArrayList<>();
-        String url = URL + API + apiKey + SEARCH_BY_TITLE + title;
+        String url = this.url + API + apiKey + SEARCH_BY_TITLE + title;
         JSONObject response = getServiceResponse(url);
 
         JSONArray jsonMoviesId = response.getJSONArray("Search");
@@ -82,7 +91,7 @@ public class OMDbService implements MovieService {
     }
 
     private Movie getMovie(String params) throws ServiceException {
-        String url = URL + API + apiKey + params;
+        String url = this.url + API + apiKey + params;
         logger.info("Request to OMDb api:" + url);
         JSONObject response = getServiceResponse(url);
 
@@ -96,7 +105,8 @@ public class OMDbService implements MovieService {
 
     private JSONObject getServiceResponse(String url) throws ServiceException {
         String responseText = restTemplate.getForObject(url, String.class);
-        logger.debug("Thread id:" + Thread.currentThread().getId() + " | Response from OMDb:" + responseText);
+        logger.debug("Thread id:" + Thread.currentThread().getId()
+                + " | Response from OMDb:" + responseText);
 
         JSONObject responseJson = null;
         try {
@@ -104,8 +114,7 @@ public class OMDbService implements MovieService {
         } catch (JSONException e) {
             logger.error(Strings.Service.INVALID_FORMAT, e);
             throw new ServiceException(
-                    Strings.Service.INVALID_FORMAT,
-                    e);
+                    Strings.Service.INVALID_FORMAT, e);
         }
         if (responseJson.getString("Response").equals("False")) {
             logger.warn(Strings.Service.CANNOT_GET_MOVIE

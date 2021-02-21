@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,13 +19,14 @@ public class MovieConverterImpl implements MovieConverter {
     private Map<String, Function<Movie, String>> convertMovie = new HashMap<>();
     private Map<String, Function<List<Movie>, String>> convertMovies = new HashMap<>();
 
-    public MovieConverterImpl() {
+    @PostConstruct
+    public void initialize() {
+        logger.trace("initializing maps...");
         convertMovie.put("json", (movie) -> new JSONObject(movie).toString());
         convertMovie.put("xml", (movie) -> XML.toString(new JSONObject(movie)));
 
         convertMovies.put("json", (movies) -> new JSONArray(movies).toString());
         convertMovies.put("xml", (movies) -> XML.toString(new JSONArray(movies)));
-
     }
 
     @Override
@@ -32,6 +34,7 @@ public class MovieConverterImpl implements MovieConverter {
         if (convertMovie.containsKey(type)) {
             return convertMovie.get(type).apply(movie);
         } else {
+            logger.error("Isn't available media type to convert movie");
             throw new RuntimeException(
                     "Isn't available media type to convert movie");
         }
@@ -41,6 +44,7 @@ public class MovieConverterImpl implements MovieConverter {
         if (convertMovies.containsKey(type)) {
             return convertMovies.get(type).apply(movies);
         } else {
+            logger.error("Isn't available media type to convert movie");
             throw new RuntimeException(
                     "Isn't available media type to convert movies");
         }
