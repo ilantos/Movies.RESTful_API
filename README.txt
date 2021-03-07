@@ -2,9 +2,13 @@ RESTful API about movies.
 This API is a decorator for OMDb API.
 
 Available requests:
-/movies/id/<your_id>
-/movies/title/<your_title>
-/movies/search/<your_title>
+(type)/movie/id/{id}
+(type)/movie/title/{title}
+(type)/movie/search/{title}
 
-Can be set response type: json or xml. Default type is json
-/movies/id/<your_id>&response=<your_type>
+Where (type) is: json, xml, doc.
+-----------
+Examples:
+json/movie/id/tt0096895
+doc/movie/search/Batman
+

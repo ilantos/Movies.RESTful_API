@@ -1,68 +1,53 @@
-package nc.lab2.ilchenko.movies.save.system;
+package nc.lab2.ilchenko.movies.model.converters;
 
 import nc.lab2.ilchenko.movies.model.Movie;
 import org.apache.log4j.Logger;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Collections;
 import java.util.List;
 
 @Component
-public class MSWordSave implements SaveMovies {
-    private static final Logger logger = Logger.getLogger(MSWordSave.class);
-    @Value("${path.output.doc}")
-    private String path;
+public class DocMovieConverter implements MovieConverter<InputStream> {
+    private static final Logger logger
+            = Logger.getLogger(DocMovieConverter.class);
 
     @Override
-    public synchronized void save(List<Movie> movies) {
-        logger.info("Saving movies into MSWord document...");
-        XWPFDocument doc = null;
+    public InputStream convert(Movie movie) {
+        return get(Collections.singletonList(movie));
+    }
+
+    @Override
+    public InputStream convert(List<Movie> movies) {
+        return get(movies);
+    }
+
+    //TODO Нужно сообщить о вероятной ошибке
+    // 1) заменить на Optional<InputStream>?
+    // 2) возвращать null если что-то не получилось
+    // 3) выбрасывать сделанное проверяемое исключение
+    // 4) выбрасывать непроверяемое исключение
+    public InputStream get(List<Movie> movies) {
         try {
-            logger.debug("Getting MSWord doc xml to append info ...");
-            doc = getOutputDoc();
-            Template.insert(doc, movies);
-        } catch (IOException e) {
-            logger.error("Cannot read from MSWord document", e);
-        }
-
-        try (FileOutputStream fos = new FileOutputStream(path)) {
-            if (doc != null) {
-                doc.write(fos);
-            } else {
-                logger.error("XML MSWord document is null");
-            }
-        } catch (IOException e) {
-            logger.error("Cannot write to MSWord document", e);
-        }
-    }
-
-    private XWPFDocument getOutputDoc() throws IOException {
-        File output = new File(path);
-        if (!Files.exists(output.toPath())) {
-            createMSWordDoc();
-        }
-
-        FileInputStream fis = new FileInputStream(path);
-        XWPFDocument document = new XWPFDocument(fis);
-        fis.close();
-        return document;
-    }
-
-    private void createMSWordDoc() throws IOException {
-        try (FileOutputStream fos = new FileOutputStream(path)) {
+            logger.info("Getting MSWord document...");
             XWPFDocument doc = new XWPFDocument();
-            doc.write(fos);
+            DocMovieConverter.Template.insert(doc, movies);
+            ByteArrayOutputStream bais = new ByteArrayOutputStream();
+            doc.write(bais);
+            return new ByteArrayInputStream(bais.toByteArray());
+        } catch (IOException e) {
+            logger.error("Cannot create MSWord document", e);
+            throw new DocConverterException("Cannot create MSWord document", e);
         }
     }
 

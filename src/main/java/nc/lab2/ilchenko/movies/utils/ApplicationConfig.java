@@ -1,10 +1,10 @@
 package nc.lab2.ilchenko.movies.utils;
 
-import nc.lab2.ilchenko.movies.save.system.MSWordSave;
-import nc.lab2.ilchenko.movies.save.system.SaveMovies;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.concurrent.ExecutorService;
@@ -14,6 +14,8 @@ import java.util.concurrent.Executors;
 public class ApplicationConfig {
     @Value("${services.threads.async.max}")
     private int maxThreads;
+    @Value("${filename.output.doc}")
+    private String filenameDoc;
 
     @Bean
     public ExecutorService executorService() {
@@ -24,5 +26,13 @@ public class ApplicationConfig {
         return new RestTemplate();
     }
     @Bean
-    public SaveMovies saveSystem() { return new MSWordSave(); }
+    public HttpHeaders docControllerHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(
+                ContentDisposition
+                        .attachment()
+                        .filename(filenameDoc)
+                        .build());
+        return headers;
+    }
 }
