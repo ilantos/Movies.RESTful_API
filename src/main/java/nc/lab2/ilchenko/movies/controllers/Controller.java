@@ -4,12 +4,10 @@ import nc.lab2.ilchenko.movies.model.Movie;
 import nc.lab2.ilchenko.movies.model.converters.MovieConverter;
 import nc.lab2.ilchenko.movies.services.MovieService;
 import nc.lab2.ilchenko.movies.services.ServiceException;
-import nc.lab2.ilchenko.movies.utils.Strings;
 
 import org.apache.log4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,9 +67,6 @@ public abstract class Controller {
                 .body(textResponse);
     }
 
-    @ResponseStatus(code = HttpStatus.NOT_FOUND,
-            reason = Strings.Movie.NOT_FOUND)
     @ExceptionHandler(ServiceException.class)
-    protected void serviceError() {
-    }
+    public abstract ResponseEntity<?> handlerServiceError();
 }

@@ -1,6 +1,7 @@
 package nc.lab2.ilchenko.movies.model.converters;
 
 import nc.lab2.ilchenko.movies.model.Movie;
+import nc.lab2.ilchenko.movies.utils.Strings;
 import org.apache.log4j.Logger;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
@@ -79,7 +80,11 @@ public class DocMovieConverter implements MovieConverter<InputStream> {
             runMovies.setFontFamily(FONT_FAMILY);
 
             XWPFRun runTemplateMovies = paragraph.createRun();
-            runTemplateMovies.setText(movies.toString());
+            if (movies.isEmpty()) {
+                runTemplateMovies.setText(Strings.Movie.NOT_FOUND);
+            } else {
+                runTemplateMovies.setText(movies.toString());
+            }
             runTemplateMovies.setFontFamily(FONT_FAMILY);
             runTemplateMovies.setFontSize(FONT_SIZE);
         }

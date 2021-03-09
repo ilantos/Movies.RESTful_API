@@ -9,6 +9,7 @@ import nc.lab2.ilchenko.movies.utils.Strings;
 
 import org.apache.log4j.Logger;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -45,7 +47,7 @@ public class DocController extends Controller {
         logger.info("User get movie by id:" + id);
         Movie movie = service.getById(id);
         InputStream docStream = (InputStream) converter.convert(movie);
-        return buildResponse(docStream);
+        return buildResponse(200, docStream);
     }
 
     @Override
@@ -54,7 +56,7 @@ public class DocController extends Controller {
         logger.info("User get movie by title:" + title);
         Movie movie = service.getByTitle(title);
         InputStream docStream = (InputStream) converter.convert(movie);
-        return buildResponse(docStream);
+        return buildResponse(200, docStream);
     }
 
     @Override
@@ -63,33 +65,35 @@ public class DocController extends Controller {
         logger.info("User search movies by title:" + title);
         List<Movie> movies = service.searchByTitle(title);
         InputStream docStream = (InputStream) converter.convert(movies);
-        return buildResponse(docStream);
+        return buildResponse(200, docStream);
     }
 
-    private ResponseEntity<?> buildResponse(InputStream doc,
-                                            HttpHeaders headers) {
+    private ResponseEntity<?> buildResponse(int status,
+                                            HttpHeaders headers,
+                                            InputStream doc) {
         try {
             byte[] fileBytes = doc.readAllBytes();
             return ResponseEntity
-                    .status(200)
+                    .status(status)
                     .contentType(responseType)
                     .headers(headers)
                     .body(fileBytes);
         } catch (IOException e) {
             logger.error("Cannot create byte array of file", e);
             return ResponseEntity
-                    .status(400)
-                    .body(Strings.Movie.NOT_FOUND);
+                    .status(500)
+                    .body(Strings.Model.MODEL_ERROR);
         }
     }
 
-    private ResponseEntity<?> buildResponse(InputStream doc) {
-        return buildResponse(doc, this.headers);
+    private ResponseEntity<?> buildResponse(int status, InputStream doc) {
+        return buildResponse(status, this.headers, doc);
     }
 
-    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR,
-            reason = Strings.Model.MODEL_ERROR)
-    @ExceptionHandler(DocConverterException.class)
-    protected void documentSendError() {
+    @Override
+    @ExceptionHandler(ServiceException.class)
+    public ResponseEntity<?> handlerServiceError() {
+        InputStream file = (InputStream) converter.convert(new ArrayList<>());
+        return buildResponse(404, file);
     }
 }
