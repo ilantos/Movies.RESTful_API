@@ -3,18 +3,13 @@ package nc.lab2.ilchenko.movies.model.converters;
 import nc.lab2.ilchenko.movies.model.Movie;
 import nc.lab2.ilchenko.movies.utils.Strings;
 import org.apache.log4j.Logger;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,11 +28,6 @@ public class DocMovieConverter implements MovieConverter<InputStream> {
         return get(movies);
     }
 
-    //TODO Нужно сообщить о вероятной ошибке
-    // 1) заменить на Optional<InputStream>?
-    // 2) возвращать null если что-то не получилось
-    // 3) выбрасывать сделанное проверяемое исключение
-    // 4) выбрасывать непроверяемое исключение
     public InputStream get(List<Movie> movies) {
         try {
             logger.info("Getting MSWord document...");
@@ -55,38 +45,50 @@ public class DocMovieConverter implements MovieConverter<InputStream> {
     private static class Template {
         private static final int FONT_SIZE = 12;
         private static final String FONT_FAMILY = "Calibri";
-        private static final DateTimeFormatter TIME_FORMAT =
-                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+        private static final String WIDTH_CELL_LEFT = "3000";
+        private static final String WIDTH_CELL_RIGHT = "6000";
 
         public static void insert(XWPFDocument doc, List<Movie> movies) {
             XWPFParagraph paragraph = doc.createParagraph();
 
-            XWPFRun runTime = paragraph.createRun();
-            runTime.setText("Movies get at: ");
-            runTime.setBold(true);
-            runTime.setFontSize(FONT_SIZE);
-            runTime.setFontFamily(FONT_FAMILY);
-
-            XWPFRun runTemplateTime = paragraph.createRun();
-            runTemplateTime.setText(LocalDateTime.now().format(TIME_FORMAT));
-            runTemplateTime.setFontFamily(FONT_FAMILY);
-            runTemplateTime.setFontSize(FONT_SIZE);
-
             XWPFRun runMovies = paragraph.createRun();
-            runMovies.addBreak();
-            runMovies.setText("Movies: ");
+            paragraph.setAlignment(ParagraphAlignment.CENTER);
+            runMovies.setText("Movies");
             runMovies.setBold(true);
             runMovies.setFontSize(FONT_SIZE);
             runMovies.setFontFamily(FONT_FAMILY);
 
-            XWPFRun runTemplateMovies = paragraph.createRun();
             if (movies.isEmpty()) {
-                runTemplateMovies.setText(Strings.Movie.NOT_FOUND);
+                XWPFRun runTemplateMovies = paragraph.createRun();
+                runTemplateMovies.setText(":" + Strings.Movie.NOT_FOUND);
+                runTemplateMovies.setFontFamily(FONT_FAMILY);
+                runTemplateMovies.setFontSize(FONT_SIZE);
             } else {
-                runTemplateMovies.setText(movies.toString());
+                for (Movie movie: movies) {
+                    printMovie(doc, movie);
+                    doc.createParagraph();
+                }
             }
-            runTemplateMovies.setFontFamily(FONT_FAMILY);
-            runTemplateMovies.setFontSize(FONT_SIZE);
+        }
+
+        public static void printMovie(XWPFDocument doc, Movie movie) {
+            XWPFTable table = doc.createTable();
+            XWPFTableRow row = table.getRow(0);
+            row.addNewTableCell();
+            printRow(row, "id", movie.getId());
+            printRow(table.createRow(), "title", movie.getTitle());
+            printRow(table.createRow(), "director", movie.getDirector());
+            printRow(table.createRow(), "year", movie.getYear());
+        }
+
+        private static void printRow(XWPFTableRow row,
+                                     String textLeftCell,
+                                     String textRightCell) {
+            row.getCell(0).setText(textLeftCell);
+            row.getCell(0).setWidth(WIDTH_CELL_LEFT);
+
+            row.getCell(1).setText(textRightCell);
+            row.getCell(1).setWidth(WIDTH_CELL_RIGHT);
         }
     }
 }

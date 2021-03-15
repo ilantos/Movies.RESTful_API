@@ -1,7 +1,6 @@
 package nc.lab2.ilchenko.movies.controllers;
 
 import nc.lab2.ilchenko.movies.model.Movie;
-import nc.lab2.ilchenko.movies.model.converters.DocConverterException;
 import nc.lab2.ilchenko.movies.model.converters.MovieConverter;
 import nc.lab2.ilchenko.movies.services.MovieService;
 import nc.lab2.ilchenko.movies.services.ServiceException;
@@ -9,11 +8,9 @@ import nc.lab2.ilchenko.movies.utils.Strings;
 
 import org.apache.log4j.Logger;
 
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
